@@ -1,11 +1,22 @@
 # use prebuild alpine image with needed python packages from base branch
 FROM vojkovic/searxng:base
-ENV GID=991 UID=991 UWSGI_WORKERS=1 UWSGI_THREADS=16 IMAGE_PROXY=true REDIS_URL= LIMITER= BASE_URL= NAME=Xyle Search SEARCH_DEFAULT_LANG= SEARCH_ENGINE_ACCESS_DENIED=0 PUBLIC_INSTANCE= \
-PRIVACYPOLICY=privacy \
-DONATION_URL=https://go.sagarb.com/donate/ \
-CONTACT=https://sagarb.com/ \
-ISSUE_URL=https://github.com/privau/searxng/issues GIT_URL=https://github.com/sagarbhusal0/search-engine-script GIT_BRANCH=main \
-UPSTREAM_COMMIT=8043bf25dc78335db1c19d7c66ffb542aaf6e491
+ENV GID=991 \
+    UID=991 \
+    UWSGI_WORKERS=1 \
+    UWSGI_THREADS=16 \
+    IMAGE_PROXY=true \
+   
+    BASE_URL=https://s.sagarb.com/ \
+    NAME="Sorvx" \
+
+    SEARCH_ENGINE_ACCESS_DENIED=0 \
+   
+    DONATION_URL=https://go.sagarb.com/donate/ \
+    CONTACT=https://sagarb.com/ \
+    ISSUE_URL=https://github.com/privau/searxng/issues \
+    GIT_URL=https://github.com/sagarbhusal0/search-engine-script \
+    GIT_BRANCH=main \
+    UPSTREAM_COMMIT=latest  # Change this to 'latest' or a valid commit hash
 
 WORKDIR /usr/local/searxng
 
