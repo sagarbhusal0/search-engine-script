@@ -4,19 +4,16 @@ ENV GID=991 \
     UID=991 \
     UWSGI_WORKERS=1 \
     UWSGI_THREADS=16 \
-    IMAGE_PROXY=true \
-   
+    IMAGE_PROXY=true \   
     BASE_URL=https://s.sagarb.com/ \
     NAME="Sorvx" \
-
     SEARCH_ENGINE_ACCESS_DENIED=0 \
-   
     DONATION_URL=https://go.sagarb.com/donate/ \
     CONTACT=https://sagarb.com/ \
     ISSUE_URL=https://github.com/privau/searxng/issues \
     GIT_URL=https://github.com/sagarbhusal0/search-engine-script \
     GIT_BRANCH=main \
-    UPSTREAM_COMMIT=latest  # Change this to 'latest' or a valid commit hash
+    UPSTREAM_COMMIT=latest 
 
 WORKDIR /usr/local/searxng
 
