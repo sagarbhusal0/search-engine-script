@@ -20,7 +20,6 @@ WORKDIR /usr/local/searxng
 RUN addgroup -g ${GID} searxng \
     && adduser -u ${UID} -D -h /usr/local/searxng -s /bin/sh -G searxng searxng \
     && git config --global --add safe.directory /usr/local/searxng \
-    && git clone https://github.com/sagarbhusal0/nepali-search-engine.git \
     && git clone https://github.com/sagarbhusal0/nepali-search-engine . \
     && if [ "${UPSTREAM_COMMIT}" != "latest" ]; then git reset --hard ${UPSTREAM_COMMIT}; fi \
     && chown -R searxng:searxng . \
