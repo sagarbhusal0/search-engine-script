@@ -19,20 +19,21 @@ WORKDIR /usr/local/searxng
 
 # install build deps and git clone searxng as well as setting the version
 RUN addgroup -g ${GID} searxng \
-    && adduser -u ${UID} -D -h /usr/local/searxng -s /bin/sh -G searxng searxng \
-    && git config --global --add safe.directory /usr/local/searxng \
-    && git clone https://github.com/sagarbhusal0/nepali-search-engine . \
-    && if [ "${UPSTREAM_COMMIT}" != "latest" ]; then git reset --hard ${UPSTREAM_COMMIT}; fi \
-    && chown -R searxng:searxng . \
-    && su searxng -c "/usr/bin/python3 -m searx.version freeze"
+&& adduser -u ${UID} -D -h /usr/local/searxng -s /bin/sh -G searxng searxng \
+&& git config --global --add safe.directory /usr/local/searxng \
+&& git clone https://github.com/sagarbhusal0/search-engine . \
+&& git reset --hard ${UPSTREAM_COMMIT} \
+&& chown -R searxng:searxng . \
+&& su searxng -c "/usr/bin/python3 -m searx.version freeze"
 
 # copy custom simple themes
 COPY ./out/css/* searx/static/themes/simple/css/
 COPY ./out/js/* searx/static/themes/simple/js/
 
-# copy run.sh and limiter.toml
+# copy run.sh, limiter.toml and favicons.toml
 COPY ./src/run.sh /usr/local/bin/run.sh
 COPY ./src/limiter.toml /etc/searxng/limiter.toml
+COPY ./src/favicons.toml /etc/searxng/favicons.toml
 
 # make our patches to searxng's code to allow for the custom theming
 RUN sed -i "/'simple_style': EnumStringSetting(/,/choices=\['', 'auto', 'light', 'dark'\]/s/choices=\['', 'auto', 'light', 'dark'\]/choices=\['', 'light', 'dark', 'paulgo', 'latte', 'frappe', 'macchiato', 'mocha', 'kagi', 'brave', 'moa', 'night'\]/" /usr/local/searxng/searx/preferences.py \
@@ -43,13 +44,16 @@ RUN sed -i "/'simple_style': EnumStringSetting(/,/choices=\['', 'auto', 'light',
 COPY ./src/privacy-policy/privacy-policy.html searx/templates/simple/privacy-policy.html
 RUN sed -i "/@app\.route('\/client<token>\.css', methods=\['GET', 'POST'\])/i \ \n@app.route('\/privacy', methods=\['GET'\])\ndef privacy_policy():return render('privacy-policy.html')\n" /usr/local/searxng/searx/webapp.py
 
-# include footer message
-# RUN sed -i "s|<footer>|<footer>\n        {{ _('Favicons in results are currently experimental. Open an issue on the ') }} <a href=\"{{ searx_git_url }}\">{{ _('GitHub') }}</a> if you run into any issues.|g" searx/templates/simple/base.html
+# include patches for captcha
+COPY ./src/captcha/captcha.html searx/templates/simple/captcha.html
+COPY ./src/captcha/captcha.py searx/captcha.py
+RUN sed -i '/search = SearchWithPlugins(search_query, request.user_plugins, request)/i\        from searx.captcha import handle_captcha\n        if (captcha_response := handle_captcha(request, settings["server"]["secret_key"], raw_text_query, search_query, selected_locale, render)):\n            return captcha_response\n' /usr/local/searxng/searx/webapp.py
 
-# include patches to enable captcha (disabled)
-# COPY ./src/captcha/captcha.html searx/templates/simple/captcha.html
-# COPY ./src/captcha/captcha.py searx/captcha.py
-# RUN sed -i '/search = SearchWithPlugins(search_query, request.user_plugins, request)/i\        from searx.captcha import handle_captcha\n        if (captcha_response := handle_captcha(request, settings["server"]["secret_key"], raw_text_query, search_query, selected_locale, render)):\n            return captcha_response\n' /usr/local/searxng/searx/webapp.py
+# include patches for authorized api access
+COPY ./src/auth/auth.py searx/auth.py
+RUN sed -i -e "/if output_format not in settings\\['search'\\]\\['formats'\\]:/a\\        from searx.auth import valid_api_key\\n        if (not valid_api_key(request)):" -e 's|flask.abort(403)|    flask.abort(403)|' /usr/local/searxng/searx/webapp.py \
+&& sed -i "/return Response('', mimetype='text\/css')/a \\\\n@app.route('/<key>/search', methods=['GET', 'POST'])\\ndef search_key(key=None):\\n    from searx.auth import auth_search_key\\n    return auth_search_key(request, key)" /usr/local/searxng/searx/webapp.py \
+&& sed -i "/3\. If the IP is not in either list, the request is not blocked\./a\\    from searx.auth import valid_api_key\\n    if (valid_api_key(request)):\\n        return None" searx/limiter.py
 
 # fix opensearch autocompleter (force method of autocompleter to use GET reuqests)
 RUN sed -i '/{% if autocomplete %}/,/{% endif %}/s|method="{{ opensearch_method }}"|method="GET"|g' searx/templates/simple/opensearch.xml
@@ -60,7 +64,7 @@ chmod +x /usr/local/bin/run.sh; \
 sed -i -e "/safe_search:/s/0/1/g" \
 -e "/autocomplete:/s/\"\"/\"google\"/g" \
 -e "/autocomplete_min:/s/4/0/g" \
--e "/favicon_resolver:/s/\"\"/\"duckduckgo\"/g" \
+-e "/favicon_resolver:/s/\"\"/\"google\"/g" \
 -e "/port:/s/8888/8080/g" \
 -e "/simple_style:/s/auto/macchiato/g" \
 -e "/infinite_scroll:/s/false/true/g" \
