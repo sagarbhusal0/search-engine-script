@@ -5,11 +5,11 @@ echo "Building theme from master branch searxng/searxng."
 echo "Cloning latest searxng/searxng"
 if [ ! -d build ]
 then
-    git clone https://github.com/sagarbhusal0/nepali-search-engine.git build
+    git clone https://github.com/sagarbhusal0/main-search-engine.git build
 else
     cd build
     git restore .
-    git pull https://github.com/sagarbhusal0/nepali-search-engine.git
+    git pull https://github.com/sagarbhusal0/main-search-engine.git
     cd ..
 fi
 
