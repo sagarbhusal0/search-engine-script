@@ -1,4 +1,5 @@
-FROM vojkovic/searxng:base
+FROM alpine:3.20 AS base
+
 ENV GID=991 \
     UID=991 \
     UWSGI_WORKERS=1 \
